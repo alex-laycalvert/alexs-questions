@@ -15,47 +15,97 @@
         <script type="module">
             import { createApp } from "https://unpkg.com/petite-vue?module";
 
-            function getResults() {}
+            const API_URL =
+                //"https://us-central-alexs-questions.cloudfunctions.net";
+                "http://localhost:5001/alexs-questions/us-central1";
 
-            function Poll(props) {
-                return {
-                    name: "Poll",
-                    pollData: {
-                        answer: null,
-                    },
-                    mounted() {
-                        if (!localStorage.getItem("pollData")) {
-                            this.save();
-                        }
-                        const parsedPollData = JSON.parse(
-                            localStorage.getItem("pollData")
-                        );
-                        this.pollData = parsedPollData;
-                        console.log(this.pollData);
-                    },
-                    answer(ans) {
-                        if (!["ring", "dog", "both"].includes(ans)) {
-                            return;
-                        }
-                        this.pollData.answer = ans;
+            createApp({
+                name: "Poll",
+                pollData: {
+                    answer: null,
+                },
+                results: null,
+                mounted() {
+                    if (!localStorage.getItem("pollData")) {
                         this.save();
-                    },
-                    save() {
-                        const stringPollData = JSON.stringify(this.pollData);
-                        localStorage.setItem("pollData", stringPollData);
-                    },
-                };
-            }
-
-            createApp({ Poll }).mount();
+                    }
+                    const parsedPollData = JSON.parse(
+                        localStorage.getItem("pollData")
+                    );
+                    this.pollData = parsedPollData;
+                },
+                answer(ans) {
+                    if (
+                        !["ring", "dog", "both"].includes(ans) ||
+                        !this.results ||
+                        this.pollData.answer === ans
+                    ) {
+                        return;
+                    }
+                    if (!this.pollData.answer) {
+                        fetch(`${API_URL}/answer?id=${this.results.id}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ answser: ans }),
+                        })
+                            .then(() => {
+                                this.pollData.answer = ans;
+                                this.save();
+                                this.fetchData();
+                            })
+                            .catch((err) => console.error("Error:", err));
+                    } else {
+                        fetch(`${API_URL}/changeAnswer?id=${this.results.id}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                from: this.pollData.answer,
+                                to: ans,
+                            }),
+                        })
+                            .then(() => {
+                                this.pollData.answer = ans;
+                                this.save();
+                                this.fetchData();
+                            })
+                            .catch((err) => console.error("Error:", err));
+                    }
+                },
+                save() {
+                    const stringPollData = JSON.stringify(this.pollData);
+                    localStorage.setItem("pollData", stringPollData);
+                },
+                fetchData() {
+                    fetch(`${API_URL}/getResults`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                            this.results = data;
+                        })
+                        .catch((err) => console.error("Error:", err));
+                },
+            }).mount();
         </script>
     </head>
     <body>
-        <div v-scope="Poll()" @vue:mounted="mounted">
-            <button @click="answer('ring')">ring</button>
-            <button @click="answer('dog')">dog</button>
-            <button @click="answer('both')">both</button>
-            <div>Current Answer: {{ pollData.answer }}</div>
+        <div v-scope v-effect="fetchData()" @vue:mounted="mounted">
+            <div class="poll-container" v-if="results">
+                <h1 class="poll-name">{{ results.name }}</h1>
+                <button
+                    class="answer-container"
+                    @click="answer(Object.keys(results.answers)[0])"
+                ></button>
+                <button
+                    class="answer-container"
+                    @click="answer(Object.keys(results.answers)[1])"
+                ></button>
+                <button class="answer-container" @click="answer('both')">
+                    Both
+                </button>
+            </div>
         </div>
     </body>
 </html>

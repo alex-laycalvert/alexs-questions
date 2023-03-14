@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Alex's Questions</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" href="style.css" />
+        <script type="module">
+            import { createApp } from "https://unpkg.com/petite-vue?module";
+
+            function getResults() {}
+
+            function Poll(props) {
+                return {
+                    name: "Poll",
+                    pollData: {
+                        answer: null,
+                    },
+                    mounted() {
+                        if (!localStorage.getItem("pollData")) {
+                            this.save();
+                        }
+                        const parsedPollData = JSON.parse(
+                            localStorage.getItem("pollData")
+                        );
+                        this.pollData = parsedPollData;
+                        console.log(this.pollData);
+                    },
+                    answer(ans) {
+                        if (!["ring", "dog", "both"].includes(ans)) {
+                            return;
+                        }
+                        this.pollData.answer = ans;
+                        this.save();
+                    },
+                    save() {
+                        const stringPollData = JSON.stringify(this.pollData);
+                        localStorage.setItem("pollData", stringPollData);
+                    },
+                };
+            }
+
+            createApp({ Poll }).mount();
+        </script>
+    </head>
+    <body>
+        <div v-scope="Poll()" @vue:mounted="mounted">
+            <button @click="answer('ring')">ring</button>
+            <button @click="answer('dog')">dog</button>
+            <button @click="answer('both')">both</button>
+            <div>Current Answer: {{ pollData.answer }}</div>
+        </div>
+    </body>
+</html>

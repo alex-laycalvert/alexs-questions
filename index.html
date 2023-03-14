@@ -31,8 +31,7 @@
                 answer(ans) {
                     if (
                         !["ring", "dog", "both"].includes(ans) ||
-                        !this.results ||
-                        this.pollData.answer === ans
+                        !this.results
                     ) {
                         return;
                     }
@@ -42,10 +41,23 @@
                             headers: {
                                 "Content-Type": "application/json",
                             },
-                            body: JSON.stringify({ answser: ans }),
+                            body: JSON.stringify({ answer: ans }),
                         })
                             .then(() => {
-                                this.save();
+                                this.fetchData();
+                            })
+                            .catch((err) => console.error("Error:", err));
+                    } else if (this.pollData.answer === ans) {
+                        fetch(`${API_URL}/changeAnswer?id=${this.results.id}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                from: this.pollData.answer,
+                            }),
+                        })
+                            .then(() => {
                                 this.fetchData();
                             })
                             .catch((err) => console.error("Error:", err));
@@ -61,12 +73,13 @@
                             }),
                         })
                             .then(() => {
-                                this.save();
                                 this.fetchData();
                             })
                             .catch((err) => console.error("Error:", err));
                     }
-                    this.pollData.answer = ans;
+                    this.pollData.answer =
+                        this.pollData.answer === ans ? null : ans;
+                    this.save();
                 },
                 save() {
                     const stringPollData = JSON.stringify(this.pollData);
@@ -80,24 +93,35 @@
                         })
                         .catch((err) => console.error("Error:", err));
                 },
-                get firstAnswer() {
+                get answers() {
                     if (!this.results?.answers) {
-                        return "";
+                        return [];
                     }
-                    return Object.keys(this.results.answers)[0];
+                    return Object.keys(this.results.answers).map((k) => ({
+                        key: k,
+                        count: this.results.answers[k],
+                    }));
                 },
-                get secondAnswer() {
+                get totalAnswers() {
                     if (!this.results?.answers) {
-                        return "";
+                        return 0;
                     }
-                    return Object.keys(this.results.answers)[1];
+                    return Object.values(this.results.answers).reduce(
+                        (total, a) => total + a,
+                        0
+                    );
+                },
+                percentage(count) {
+                    return count / this.totalAnswers * 100
                 },
                 capitalize(str) {
-                    str = str.toString();
-                    if (str.length <= 0) {
-                        return str;
+                    if (!str || str.length <= 0) {
+                        return "";
                     }
                     return str[0].toUpperCase() + str.slice(1);
+                },
+                pluralize(votes) {
+                    return votes === 1 ? "vote" : "votes";
                 },
             }).mount();
         </script>
@@ -109,47 +133,25 @@
                     <h1 class="poll-name">{{ results.name }}</h1>
                     <p class="poll-description">{{ results.description }}</p>
                     <div class="answers-container">
-                        <div class="answer-row">
-                            <button
-                                v-if="firstAnswer === pollData.answer"
-                                class="answer-container selected"
-                            >
-                                <div>{{ capitalize(firstAnswer) }}</div>
-                                <div>{{ results.answers[firstAnswer] }}</div>
-                            </button>
-                            <button
-                                v-else
-                                class="answer-container"
-                                @click="answer(firstAnswer)"
-                            >
-                                {{ capitalize(firstAnswer) }}
-                            </button>
-                            <button
-                                v-if="secondAnswer === pollData.answer"
-                                class="answer-container selected"
-                            >
-                                {{ capitalize(secondAnswer) }}
-                            </button>
-                            <button
-                                v-else
-                                class="answer-container"
-                                @click="answer(secondAnswer)"
-                            >
-                                {{ capitalize(secondAnswer) }}
-                            </button>
-                        </div>
                         <button
-                            v-if="'both' === pollData.answer"
-                            class="answer-container selected"
+                            class="answer-button"
+                            v-for="a in answers"
+                            :key="a.key"
+                            :class="{ selected: a.key === pollData.answer }"
+                            @click="answer(a.key)"
                         >
-                            Both
-                        </button>
-                        <button
-                            v-else
-                            class="answer-container"
-                            @click="answer('both')"
-                        >
-                            Both
+                            <div><b>{{ capitalize(a.key) }}</b></div>
+                            <div class="answer-stats" v-if="pollData.answer">
+                                <div class="votes">
+                                    {{ a.count }} {{ pluralize(a.count) }}
+                                </div>
+                                <div class="percentage">
+                                    <div class="percentage-fill" :style="{ width: `${percentage(a.count)}%` }">&nbsp;</div>
+                                </div>
+                                <div class="percentage-text">
+                                    <b>{{ percentage(a.count) }}%</b>
+                                </div>
+                            </div>
                         </button>
                     </div>
                 </div>

@@ -73,9 +73,9 @@ export const changeAnswer = functions.https.onRequest((req, res) => {
             return;
         }
         const { from, to } = req.body;
-        if (!from || !to) {
+        if (!from) {
             res.status(400).json({
-                message: "`from` and `to` are required in the POST body",
+                message: "`from` is required in the POST body",
             });
             return;
         }
@@ -91,7 +91,9 @@ export const changeAnswer = functions.https.onRequest((req, res) => {
         if (answers[from.toString()] > 0) {
             answers[from.toString()] = answers[from.toString()] - 1;
         }
-        answers[to.toString()] = answers[to.toString()] + 1;
+        if (to) {
+            answers[to.toString()] = answers[to.toString()] + 1;
+        }
         const results = db.doc(doc.id).set({
             ...doc.data(),
             answers,

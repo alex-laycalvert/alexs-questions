@@ -39,6 +39,12 @@ export const answer = functions.https.onRequest((req, res) => {
             return;
         }
         const { answer } = req.body;
+        if (!answer) {
+            res.status(400).json({
+                message: "`answer` is required in the POST body",
+            });
+            return;
+        }
         const db = admin.firestore().collection("results");
         const doc = await db.doc(id.toString()).get();
         if (!doc.exists || !doc.data()) {
@@ -67,6 +73,12 @@ export const changeAnswer = functions.https.onRequest((req, res) => {
             return;
         }
         const { from, to } = req.body;
+        if (!from || !to) {
+            res.status(400).json({
+                message: "`from` and `to` are required in the POST body",
+            });
+            return;
+        }
         const db = admin.firestore().collection("results");
         const doc = await db.doc(id.toString()).get();
         if (!doc.exists || !doc.data()) {
@@ -88,13 +100,15 @@ export const changeAnswer = functions.https.onRequest((req, res) => {
     });
 });
 
-export const createPoll = functions.https.onRequest(async (req, res) => {
-    const results = await admin
-        .firestore()
-        .collection("results")
-        .add({
-            type: "poll",
-            ...req.body,
-        });
-    res.status(200).json(results);
+export const createPoll = functions.https.onRequest((req, res) => {
+    return cors()(req, res, async () => {
+        const results = await admin
+            .firestore()
+            .collection("results")
+            .add({
+                type: "poll",
+                ...req.body,
+            });
+        res.status(200).json(results);
+    });
 });

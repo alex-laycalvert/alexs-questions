@@ -5,12 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <title>Alex's Questions</title>
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
-            crossorigin="anonymous"
-        />
         <link rel="stylesheet" href="style.css" />
         <script type="module">
             import { createApp } from "https://unpkg.com/petite-vue?module";
@@ -51,7 +45,6 @@
                             body: JSON.stringify({ answser: ans }),
                         })
                             .then(() => {
-                                this.pollData.answer = ans;
                                 this.save();
                                 this.fetchData();
                             })
@@ -68,12 +61,12 @@
                             }),
                         })
                             .then(() => {
-                                this.pollData.answer = ans;
                                 this.save();
                                 this.fetchData();
                             })
                             .catch((err) => console.error("Error:", err));
                     }
+                    this.pollData.answer = ans;
                 },
                 save() {
                     const stringPollData = JSON.stringify(this.pollData);
@@ -87,24 +80,79 @@
                         })
                         .catch((err) => console.error("Error:", err));
                 },
+                get firstAnswer() {
+                    if (!this.results?.answers) {
+                        return "";
+                    }
+                    return Object.keys(this.results.answers)[0];
+                },
+                get secondAnswer() {
+                    if (!this.results?.answers) {
+                        return "";
+                    }
+                    return Object.keys(this.results.answers)[1];
+                },
+                capitalize(str) {
+                    str = str.toString();
+                    if (str.length <= 0) {
+                        return str;
+                    }
+                    return str[0].toUpperCase() + str.slice(1);
+                },
             }).mount();
         </script>
     </head>
     <body>
         <div v-scope v-effect="fetchData()" @vue:mounted="mounted">
             <div class="poll-container" v-if="results">
-                <h1 class="poll-name">{{ results.name }}</h1>
-                <button
-                    class="answer-container"
-                    @click="answer(Object.keys(results.answers)[0])"
-                ></button>
-                <button
-                    class="answer-container"
-                    @click="answer(Object.keys(results.answers)[1])"
-                ></button>
-                <button class="answer-container" @click="answer('both')">
-                    Both
-                </button>
+                <div class="poll-box">
+                    <h1 class="poll-name">{{ results.name }}</h1>
+                    <p class="poll-description">{{ results.description }}</p>
+                    <div class="answers-container">
+                        <div class="answer-row">
+                            <button
+                                v-if="firstAnswer === pollData.answer"
+                                class="answer-container selected"
+                            >
+                                <div>{{ capitalize(firstAnswer) }}</div>
+                                <div>{{ results.answers[firstAnswer] }}</div>
+                            </button>
+                            <button
+                                v-else
+                                class="answer-container"
+                                @click="answer(firstAnswer)"
+                            >
+                                {{ capitalize(firstAnswer) }}
+                            </button>
+                            <button
+                                v-if="secondAnswer === pollData.answer"
+                                class="answer-container selected"
+                            >
+                                {{ capitalize(secondAnswer) }}
+                            </button>
+                            <button
+                                v-else
+                                class="answer-container"
+                                @click="answer(secondAnswer)"
+                            >
+                                {{ capitalize(secondAnswer) }}
+                            </button>
+                        </div>
+                        <button
+                            v-if="'both' === pollData.answer"
+                            class="answer-container selected"
+                        >
+                            Both
+                        </button>
+                        <button
+                            v-else
+                            class="answer-container"
+                            @click="answer('both')"
+                        >
+                            Both
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </body>

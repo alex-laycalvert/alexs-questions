@@ -5,8 +5,12 @@ import * as cors from "cors";
 
 admin.initializeApp(functions.config().firebase);
 
+const corsWrapper = cors({
+    origin: true,
+});
+
 export const getResults = functions.https.onRequest((req, res) => {
-    return cors()(req, res, async () => {
+    return corsWrapper(req, res, async () => {
         const { slug } = req.query;
         let query: Query<DocumentData> = admin
             .firestore()
@@ -30,7 +34,7 @@ export const getResults = functions.https.onRequest((req, res) => {
 });
 
 export const answer = functions.https.onRequest((req, res) => {
-    return cors()(req, res, async () => {
+    return corsWrapper(req, res, async () => {
         const { id } = req.query;
         if (!id) {
             res.status(400).json({
@@ -64,7 +68,7 @@ export const answer = functions.https.onRequest((req, res) => {
 });
 
 export const changeAnswer = functions.https.onRequest((req, res) => {
-    return cors()(req, res, async () => {
+    return corsWrapper(req, res, async () => {
         const { id } = req.query;
         if (!id) {
             res.status(400).json({
@@ -103,7 +107,7 @@ export const changeAnswer = functions.https.onRequest((req, res) => {
 });
 
 export const createPoll = functions.https.onRequest((req, res) => {
-    return cors()(req, res, async () => {
+    return corsWrapper(req, res, async () => {
         const results = await admin
             .firestore()
             .collection("results")

@@ -20,9 +20,9 @@
     "ignorePatterns": ["/lib/**/*"],
     "plugins": ["@typescript-eslint", "import"],
     "rules": {
+        "object-curly-spacing": 0,
         "quotes": ["error", "double"],
         "import/no-unresolved": 0,
-        "indent": ["error", 4],
-        "object-curly-spacing": ["error", "always"]
+        "indent": ["error", 4]
     }
 }

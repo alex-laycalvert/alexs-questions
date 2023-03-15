@@ -1,44 +1,31 @@
-:root {
-    --button-spacing: 10px;
-}
-
-* {
-    font-family: sans;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-}
-
-.poll-container {
-    height: 100vh;
+.main {
     display: flex;
+    height: 100vh;
 }
 
-.poll-box {
-    width: 400px;
+.pollBox {
+    width: 500px;
     text-align: center;
     margin: auto;
 }
 
-.poll-name {
+.pollName {
     font-weight: 400;
     margin-bottom: 10px;
 }
 
-.poll-description {
+.pollDescription {
     margin-bottom: 20px;
 }
 
-.answers-container {
+.answersContainer {
     display: grid;
     grid-template-columns: 50% 50%;
     translate: calc(-1 * var(--button-spacing)) 0;
     grid-gap: calc(var(--button-spacing) * 2);
 }
 
-.answer-button {
+.answerButton {
     all: unset;
     cursor: pointer;
     height: 100px;
@@ -49,23 +36,23 @@ body {
     transition: all 0.15s ease;
 }
 
-.answer-button:nth-child(odd):last-child {
+.answerButton:nth-child(odd):last-child {
     grid-column: 1 / 3;
 }
 
-.answer-button:not(.selected):hover {
+.answerButton:not(.selected):hover {
     border-color: #03045e;
     background: #6b7fd775;
     box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.5);
 }
 
-.answer-button.selected {
+.answerButton.selected {
     border-color: #03045e;
     background: #6b7fd775;
     box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.5);
 }
 
-.answer-stats {
+.answerStats {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -85,7 +72,7 @@ body {
     overflow: hidden;
 }
 
-.percentage-fill {
+.percentageFill {
     background: #1155ff;
     height: 15px;
     border-radius: 10px;
@@ -93,6 +80,6 @@ body {
     transition: all 0.5s ease;
 }
 
-.percentage-text {
+.percentageText {
     margin-top: 1px;
 }
